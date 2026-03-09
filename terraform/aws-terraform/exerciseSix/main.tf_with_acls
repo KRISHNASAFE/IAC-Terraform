@@ -1,0 +1,88 @@
+provider "aws" {
+  region = "us-east-2"
+}
+
+# S3 bucket without deprecated ACL
+resource "aws_s3_bucket" "my_bucket" {
+  bucket = "my-bucket-8-3-26"
+
+  tags = {
+    Environment = "dev-poc"
+    Owner       = "team-A"
+    Project     = "dev-poc-static-hosting"
+  }
+}
+
+# ACL using separate resource
+resource "aws_s3_bucket_acl" "my_bucket_acl" {
+  bucket = aws_s3_bucket.my_bucket.id
+  acl    = "private"
+}
+
+# Versioning
+resource "aws_s3_bucket_versioning" "my_bucket_versioning" {
+  bucket = aws_s3_bucket.my_bucket.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+# Encryption
+resource "aws_s3_bucket_server_side_encryption_configuration" "my_bucket_encryption" {
+  bucket = aws_s3_bucket.my_bucket.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"  # or "aws:kms"
+    }
+  }
+}
+
+# Logging (optional: you can send logs to a dedicated bucket)
+resource "aws_s3_bucket_logging" "my_bucket_logging" {
+  bucket        = aws_s3_bucket.my_bucket.id
+  target_bucket = aws_s3_bucket.my_bucket.id
+  target_prefix = "log/"
+}
+
+# Lifecycle policy (new syntax)
+resource "aws_s3_bucket_lifecycle_configuration" "my_bucket_lifecycle" {
+  bucket = aws_s3_bucket.my_bucket.id
+
+  rule {
+    id     = "ExpireOldObjects"
+    status = "Enabled"   # required now
+
+    expiration {
+      days = 2  # delete objects older than 1 year
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 1  # delete old versions after 90 days
+    }
+  }
+}
+
+# Bucket policy example
+resource "aws_s3_bucket_policy" "my_bucket_policy" {
+  bucket = aws_s3_bucket.my_bucket.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "DenyPublicRead"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "s3:GetObject"
+        Resource  = "${aws_s3_bucket.my_bucket.arn}/*"
+        Condition = {
+          Bool = {
+            "aws:SecureTransport" = "false"
+          }
+        }
+      }
+    ]
+  })
+}
