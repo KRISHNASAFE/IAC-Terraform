@@ -1,5 +1,27 @@
-This repo is completely related to IAC and IAC exercises on various clouds specifically AWS, Azure.
-I am trying to create small-small .tf files to provision infrastructure using Terraform by Hashicorp. 
-All files are under terraform named directory. 
+# Infrastructure as Code with Terraform
 
-.devcontainer is container which I have created on GitHub and installed necessary dev dependencies, AWS, Azure components to complete various tasks listed in each exercise in the repo.
+## Overview
+This repository contains Terraform configurations for provisioning cloud infrastructure using Infrastructure as Code principles.
+
+## Features
+- AWS resource provisioning
+- Modular Terraform code
+- Reusable infrastructure templates
+- Automated deployments
+
+## Technologies Used
+- Terraform
+- AWS
+- GitHub Actions
+
+## Infrastructure Components
+- EC2
+- VPC
+- S3
+- IAM
+- Security Groups
+
+## Commands
+terraform init
+terraform plan
+terraform apply
